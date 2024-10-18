@@ -1,17 +1,28 @@
 //require('dotenv').config({path:'./env'})
+import express from "express";
 import dotenv from "dotenv"
 import connectDB from "./db/index.js"
 
+// configuring environment variables so that it becomes available
+// during start of the project, Eg need of this for MongoDB_URI value must be 
+// initialized before the connection step
 dotenv.config({
     path:"./env"
 })
 
+// Initialize an Express app
+const app = express();
+
+// Step to connect to MongoDB and then start the server
 connectDB().then( ()=>{
-    app.listen(prcoess.env.PORT || 3000, ()=>{
+    // Start the Express server after the MongoDB connection is successful
+    app.listen(process.env.PORT || 3000, ()=>{
     console.log(`Server is running at port ${process.env.PORT}`)});
 }).catch((err)=>{
+    // Log an error if MongoDB connection fails
     console.log("MongoDB connection fail!")
 })
+
 
 
 
