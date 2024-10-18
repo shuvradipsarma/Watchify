@@ -65,7 +65,7 @@ userSchema.methods.isPasswordCorrect = async function(password){
 
 // generate access token
 userSchema.methods.generateAccessToken = function(){
-    jwt.sign(
+    return jwt.sign(
         {
         _id:this._id,
         email:this.email,
@@ -80,6 +80,16 @@ userSchema.methods.generateAccessToken = function(){
 }
 
 // generate refresh token
-userSchema.methods.generateRefreshToken = function(){}
+userSchema.methods.generateRefreshToken = function(){
+    jwt.sign(
+        {
+        _id:this._id,
+        },
+        process.env.ACCESS_TOKEN_SECRET, // process.env is obj reference that is used to set/retrieve env variables
+        {
+            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
+}
 
 export const User = mongoose.model("User",userSchema)
