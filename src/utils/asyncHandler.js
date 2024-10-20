@@ -6,7 +6,7 @@ const  asyncHandler = (requestHandler)=>{
 
 
 
-export {asyncHandler}
+export default {asyncHandler}
 
 // higher order function(takes function as parameter) and
 // returns a function

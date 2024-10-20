@@ -16,4 +16,5 @@ app.use(express.urlencoded({extended:true,limit:"16kb"})) // Parses URL-encoded 
 app.use(express.static("public")) // Serves static files(images,css,js) from the "public" directory.
 app.use(cookieParser())  // Parses cookies attached to the client request object.
 
+
 export {app}
