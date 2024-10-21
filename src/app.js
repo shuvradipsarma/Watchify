@@ -16,5 +16,10 @@ app.use(express.urlencoded({extended:true,limit:"16kb"})) // Parses URL-encoded 
 app.use(express.static("public")) // Serves static files(images,css,js) from the "public" directory.
 app.use(cookieParser())  // Parses cookies attached to the client request object.
 
+// import routes
+import userRouter from './routes/user.routes.js';
 
-export {app}
+// routes decleration
+app.use("/api/v1/users",userRouter)
+//http://localhost:3000/api/v1/users/register
+export default app
