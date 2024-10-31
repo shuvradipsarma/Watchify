@@ -1,6 +1,8 @@
 import {asyncHandler} from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js";
+import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import {ApiResponse} from "../utils/ApiResponse.js";
 // register User
 const registerUser = asyncHandler(async (req,res)=>{
     // Information needed to register a user -----
@@ -42,6 +44,37 @@ const registerUser = asyncHandler(async (req,res)=>{
     {
         throw new ApiError(400,"Avatar file is required")
     }
+
+    // cover image requirement is not compulsory
+
+    // now upload the avatar file on cloudinary
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    if(!avatar)
+    {
+        throw new ApiError(400,"Avatar file is required")
+    }
+
+    // User profile creation takes time(network speed, database calls,etc) hence await is used
+    const user = await User.create({
+        fullName,
+        avatar:avatar.url,
+        coverImage:coverImage?.url || "", // edge case check - coverImage(optional field) might be there or not
+        email,
+        password,
+        username: username.toLowerCase()
+    })
+
+    const createdUser = await User.findById(user._id).select("-password -refreshToken") // "-" indicates donot give these fields as response
+    if(!createdUser)
+    {
+        throw new ApiError(500, "Something went wrong while registering the user")
+    }
+
+    // Now send the structured Response
+    return res.status(201).json({
+        response : new ApiResponse(200,createdUser,"User registered successfully")
+    })
 })
 
 export {registerUser}
