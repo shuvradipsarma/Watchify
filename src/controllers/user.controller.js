@@ -3,7 +3,8 @@ import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js";
 import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
-// register User
+
+// REGISTER USER
 const registerUser = asyncHandler(async (req,res)=>{
     // Information needed to register a user -----
     // 1.Get user input (username,email,password,fullname,
@@ -88,4 +89,76 @@ const registerUser = asyncHandler(async (req,res)=>{
     })
 })
 
-export {registerUser}
+// LOGIN USER
+// access and refresh token for Login purpose of user
+const generateAccessAndRefreshTokens = async(userId) =>
+{
+    try
+    {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        // we store the refreshToken in our DB
+        user.refreshToken = refreshToken
+        // DB operation takes time hence using await
+        await user.save({validateBeforeSave: false}) // no need to other fields only want to salve "refreshToken"
+        
+        return {accessToken,refreshToken}
+    
+    }catch(error)
+    {
+        throw new ApiError(500,"Something went wrong while generating refresh & access token")
+    }
+}
+const loginUser = asyncHandler(async (req,res) =>{
+    // req body -> extract data (user will enter their data to login)
+    // username or email 
+    // find the user
+    // check for password
+    // if password correct -> generate access & refresh token and assign to user
+    // send cookie as response
+
+    const {email,username, password} = req.body // fields - email,username,password are required to login
+    
+    if(!username || !email)
+    {
+        throw new ApiError(400,"username or email is required")
+    }
+
+    const user = await User.findOne({
+        $or: [{email}, {username}],
+    })
+
+    if(!user)
+    {
+        throw new ApiError(404,"User does not exist")
+    }
+    
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid)
+    {
+        throw new ApiError(401,"Invalid user credentials")
+    }
+
+    // takes time to generate since the function itself is async in nature, hence putting "await"
+    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken") // fields-password,refreshToken are not sent to LoggedInUser
+    
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(new ApiResponse(200,{user:loggedInUser, accessToken, refreshToken},"User Logged In Successfully"))
+
+})
+
+// LOGOUT USER
+const logoutUser = asyncHandler(async(req,res)=>{
+    // remove access token from cookie
+    User.findById
+})
+export {registerUser,loginUser}
