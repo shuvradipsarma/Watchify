@@ -4,7 +4,7 @@ import {User} from "../models/user.model.js";
 import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
 
-// REGISTER USER
+// REGISTER USER API LOGIC
 const registerUser = asyncHandler(async (req,res)=>{
     // Information needed to register a user -----
     // 1.Get user input (username,email,password,fullname,
@@ -89,7 +89,7 @@ const registerUser = asyncHandler(async (req,res)=>{
     })
 })
 
-// LOGIN USER
+// LOGIN USER API LOGIC 
 // access and refresh token for Login purpose of user
 const generateAccessAndRefreshTokens = async(userId) =>
 {
@@ -111,6 +111,8 @@ const generateAccessAndRefreshTokens = async(userId) =>
         throw new ApiError(500,"Something went wrong while generating refresh & access token")
     }
 }
+
+// LOGIN USER API LOGIC 
 const loginUser = asyncHandler(async (req,res) =>{
     // req body -> extract data (user will enter their data to login)
     // username or email 
@@ -159,6 +161,19 @@ const loginUser = asyncHandler(async (req,res) =>{
 // LOGOUT USER
 const logoutUser = asyncHandler(async(req,res)=>{
     // remove access token from cookie
-    User.findById
+    await User.findByIdAndUpdate(
+        // from verifyJWT middleware code, by setting req.user = user, we’re attaching the user object (fetched from the database) 
+        // directly to the req object. This allows subsequent middleware or route handlers to access req.user object data
+        req.user._id,
+        {
+            // $set is MongoDB update operator that updates value of a field here its "refreshToken" field
+            $set:{
+                refreshToken: undefined,
+            }
+        },
+        {
+            new: true
+        }
+    )
 })
-export {registerUser,loginUser}
+export {registerUser,loginUser,logoutUser}
