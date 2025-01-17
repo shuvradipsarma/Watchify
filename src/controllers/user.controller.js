@@ -240,7 +240,7 @@ const changeCurrentPassword = asyncHandler(async(req,res)=>{
         throw new ApiError(400,"Invalid old password")
     }
 
-    user.password = newPassword 
+    user.password = newPassword // set the new password in user password field
     await user.save({validateBeforeSave: false})// new password will save into DB so userSchema.pre('save') is called an password is hashed by bcrypt
 
     return res.status(200).json(new ApiResponse(200,{},"Password changed successfully"))
