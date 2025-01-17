@@ -188,6 +188,7 @@ const logoutUser = asyncHandler(async(req,res)=>{
     return res.status(200).clearCookie("accessToken",options).clearCookie("refreshToken",options).json(new ApiResponse(200,{},"User logged out successfully"))
 })
 
+// When access token is expired and user wants to continue session
 // Refresh access token
 const refreshAccessToken = asyncHandler(async(req,res)=>{
     // get refresh token from cookie
@@ -200,7 +201,7 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
 
     try {
         const decodedToken = jwt.verify(incomingrefreshToken,process.env.REFRESH_TOKEN_SECRET)
-        // Query MongoDB using Mongoose to get the "_id" of user's refreshToken
+        // Query _id of refreshToken of user from MongoDB using Mongoose to get the user info object 
         const user = await User.findById(decodedToken?._id)
         if(!user)
         {
